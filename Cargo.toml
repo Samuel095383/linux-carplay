@@ -1,0 +1,19 @@
+[package]
+name = "linux-carplay"
+version = "0.1.0"
+edition = "2024"
+description = "Initial Linux CarPlay receiver MVP foundation"
+license = "MIT"
+repository = "https://github.com/Samuel095383/linux-carplay"
+
+[features]
+default = []
+libusb = ["dep:rusb"]
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter", "json"] }
+rusb = { version = "0.9", optional = true }
