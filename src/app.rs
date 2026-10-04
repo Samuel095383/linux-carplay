@@ -64,10 +64,12 @@ impl Application {
         let selected_device_id = device_id(selected);
 
         let discovery = WirelessDiscovery;
-        if matches!(self.cli.transport, TransportMode::Wireless | TransportMode::Auto) {
-            if let Some(candidate) = discovery.discover_candidate(&devices) {
-                info!(candidate, "wireless candidate discovered");
-            }
+        if matches!(
+            self.cli.transport,
+            TransportMode::Wireless | TransportMode::Auto
+        ) && let Some(candidate) = discovery.discover_candidate(&devices)
+        {
+            info!(candidate, "wireless candidate discovered");
         }
 
         let pairing = pairing_store
@@ -179,11 +181,14 @@ impl Application {
         diagnostics::trace_packet("tx-input", &input_frame);
 
         if !demo_mode {
-            warn!("running integration scaffold mode; protocol/media paths are non-MFi placeholders");
+            warn!(
+                "running integration scaffold mode; protocol/media paths are non-MFi placeholders"
+            );
         }
 
         Self::apply_event(&mut session, SessionEvent::LinkLost)?;
-        let reconnect_succeeded = self.attempt_reconnect(&mut session, control, &negotiation.session_id)?;
+        let reconnect_succeeded =
+            self.attempt_reconnect(&mut session, control, &negotiation.session_id)?;
         if !reconnect_succeeded {
             Self::apply_event(&mut session, SessionEvent::ReconnectFailed)?;
         }

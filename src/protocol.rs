@@ -218,8 +218,8 @@ pub enum ProtocolError {
 #[cfg(test)]
 mod tests {
     use super::{
-        BasicNegotiator, CapabilitySet, CarPlayAuthenticator, CarPlayNegotiator, NegotiationRequest,
-        ProtocolError, SharedTokenAuthenticator,
+        BasicNegotiator, CapabilitySet, CarPlayAuthenticator, CarPlayNegotiator,
+        NegotiationRequest, ProtocolError, SharedTokenAuthenticator,
     };
     use crate::config::TransportMode;
     use crate::transport::UsbDeviceInfo;
@@ -243,7 +243,9 @@ mod tests {
             device: apple_device(),
         };
 
-        let result = negotiator.negotiate(request).expect("negotiate should work");
+        let result = negotiator
+            .negotiate(request)
+            .expect("negotiate should work");
         assert_eq!(result.transport, TransportMode::Wired);
         assert!(result.channels.len() >= 4);
     }

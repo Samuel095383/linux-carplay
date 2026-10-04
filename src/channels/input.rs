@@ -11,12 +11,29 @@ pub enum HardwareButton {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InputEvent {
-    TouchDown { x: u16, y: u16 },
-    TouchUp { x: u16, y: u16 },
-    TouchMove { x: u16, y: u16 },
-    Key { code: u16, pressed: bool },
-    Rotary { delta: i16 },
-    Button { button: HardwareButton, pressed: bool },
+    TouchDown {
+        x: u16,
+        y: u16,
+    },
+    TouchUp {
+        x: u16,
+        y: u16,
+    },
+    TouchMove {
+        x: u16,
+        y: u16,
+    },
+    Key {
+        code: u16,
+        pressed: bool,
+    },
+    Rotary {
+        delta: i16,
+    },
+    Button {
+        button: HardwareButton,
+        pressed: bool,
+    },
 }
 
 pub trait InputChannel {
@@ -44,7 +61,9 @@ impl InputChannel for BasicInputChannel {
                 payload.extend_from_slice(&delta.to_be_bytes());
                 payload
             }
-            InputEvent::Button { button, pressed } => vec![0x06, button_code(*button), u8::from(*pressed)],
+            InputEvent::Button { button, pressed } => {
+                vec![0x06, button_code(*button), u8::from(*pressed)]
+            }
         };
 
         Frame {
@@ -87,8 +106,10 @@ impl InputMapper {
         let target_w = self.target_width as u32;
         let target_h = self.target_height as u32;
 
-        let scaled_x = ((x as u32).saturating_mul(target_w) / source_w).min(target_w.saturating_sub(1));
-        let scaled_y = ((y as u32).saturating_mul(target_h) / source_h).min(target_h.saturating_sub(1));
+        let scaled_x =
+            ((x as u32).saturating_mul(target_w) / source_w).min(target_w.saturating_sub(1));
+        let scaled_y =
+            ((y as u32).saturating_mul(target_h) / source_h).min(target_h.saturating_sub(1));
         (scaled_x as u16, scaled_y as u16)
     }
 

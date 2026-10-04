@@ -46,10 +46,10 @@ impl PairingStore {
     }
 
     pub fn save(&self, path: &Path) -> Result<(), WirelessError> {
-        if let Some(parent) = path.parent() {
-            if !parent.as_os_str().is_empty() {
-                fs::create_dir_all(parent).map_err(WirelessError::Io)?;
-            }
+        if let Some(parent) = path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            fs::create_dir_all(parent).map_err(WirelessError::Io)?;
         }
 
         let mut output = String::new();
@@ -75,7 +75,9 @@ impl PairingStore {
     }
 
     pub fn find(&self, device_id: &str) -> Option<&PairingRecord> {
-        self.records.iter().find(|record| record.device_id == device_id)
+        self.records
+            .iter()
+            .find(|record| record.device_id == device_id)
     }
 }
 

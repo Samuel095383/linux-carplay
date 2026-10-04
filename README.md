@@ -2,7 +2,7 @@
 
 `linux-carplay` is an **early Linux CarPlay receiver MVP foundation** inspired by Android-side projects such as DiPlay, but implemented from scratch for Linux with an honest scope.
 
-> ⚠️ Current status: this repository **does not implement full CarPlay protocol compatibility** yet. It provides modular plumbing, demo lifecycle execution, and extension points for future transport/media work.
+> ⚠️ Current status: this repository now includes end-to-end **scaffolding** for all major CarPlay subsystems, but it is still not Apple-certified and does not provide full production CarPlay compatibility.
 
 ## What is implemented now
 
@@ -10,14 +10,17 @@
   - USB discovery abstraction (`transport`), with:
     - mock backend (always available)
     - optional `libusb` backend via `rusb` feature
-  - session state machine (`session`) with explicit lifecycle transitions
-  - channel abstractions (`channels`) for control/video/audio/input
+  - session state machine (`session`) with explicit lifecycle transitions for discovery, pairing, negotiation, auth, channel setup, streaming, reconnect and teardown
+  - channel abstractions (`channels`) for control/video/audio/input with richer event/frame structures
   - framing codec (`framing`) for simple channel-tagged frame exchange
+  - protocol scaffolding (`protocol`) for capability negotiation, channel setup decisions and challenge/proof auth flow
+  - media scaffolding (`media`) for video/audio packet decoding and microphone uplink packetization
+  - wireless pairing/discovery persistence scaffolding (`wireless`) for reconnect metadata
   - renderer abstraction (`renderer`) with:
     - `TerminalRenderer` practical Linux implementation (logs frame metadata)
     - `StubRenderer` fallback when display output is unavailable
   - structured diagnostics (`tracing` + `tracing-subscriber`)
-- Demo mode (`--demo`) that exercises discovery → negotiation → streaming lifecycle behavior without iPhone hardware.
+- Demo and integration scaffold modes that exercise discovery → pairing → negotiation → auth → channel setup → media/input/uplink handling → reconnect lifecycle behavior.
 - Tests for:
   - session state machine transitions
   - framing encode/decode behavior
@@ -25,13 +28,12 @@
   - CLI/config parsing
 - Linux CI for format, lint, test, and build.
 
-## What is not implemented yet
+## What is still not production-ready
 
-- Real Apple CarPlay protocol negotiation/authentication
-- Real CarPlay H.264 video/audio reception and decode pipelines
-- iPhone microphone uplink/voice channel
-- Real input event forwarding to CarPlay session
-- Wireless CarPlay pairing/discovery/reconnect
+- Apple/MFi-certified proprietary protocol and credential handling
+- Hardware-verified H.264/AAC decode/render/audio output integration against real iPhone sessions
+- Full Linux device integration for microphone capture, low-latency playback, and complete input device matrix
+- Production-grade wireless discovery/advertising/security handshakes across networks
 
 ## Safety and legal notice
 
@@ -83,6 +85,7 @@ Useful options:
 cargo run -- --help
 cargo run -- --version
 cargo run -- --demo --renderer terminal --log-format json
+cargo run -- --transport wireless --pairing-store /tmp/carplay_pairings.db
 ```
 
 ## USB permissions / udev guidance (for future real-device mode)
@@ -109,4 +112,3 @@ sudo udevadm trigger
 5. Input forwarding (touch/keys/buttons)
 6. Wireless discovery/pairing/reconnect support
 7. Better Linux UI integration (GTK/Qt/embedded compositor variants)
-

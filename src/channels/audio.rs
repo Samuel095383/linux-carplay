@@ -56,7 +56,9 @@ mod tests {
         };
 
         let wrapped = channel.pcm_frame(&frame);
-        let decoded = channel.decode_pcm_frame(&wrapped).expect("decode audio frame");
+        let decoded = channel
+            .decode_pcm_frame(&wrapped)
+            .expect("decode audio frame");
         assert_eq!(decoded, frame);
     }
 }

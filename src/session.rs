@@ -75,7 +75,9 @@ impl Session {
             }
             (SessionState::ChannelSetup, SessionEvent::ChannelsReady) => SessionState::Streaming,
             (SessionState::Streaming, SessionEvent::LinkLost) => SessionState::Reconnecting,
-            (SessionState::Reconnecting, SessionEvent::ReconnectSucceeded) => SessionState::Streaming,
+            (SessionState::Reconnecting, SessionEvent::ReconnectSucceeded) => {
+                SessionState::Streaming
+            }
             (SessionState::Reconnecting, SessionEvent::ReconnectFailed) => SessionState::Stopping,
             (SessionState::Streaming, SessionEvent::Stop)
             | (SessionState::Discovering, SessionEvent::Stop)
@@ -104,7 +106,10 @@ mod tests {
     #[test]
     fn happy_path_transitions_to_streaming() {
         let mut session = Session::new();
-        assert_eq!(session.transition(SessionEvent::Start), Ok(SessionState::Discovering));
+        assert_eq!(
+            session.transition(SessionEvent::Start),
+            Ok(SessionState::Discovering)
+        );
         assert_eq!(
             session.transition(SessionEvent::DeviceDiscovered),
             Ok(SessionState::Pairing)
@@ -141,7 +146,10 @@ mod tests {
             session.transition(event).expect("transition to streaming");
         }
 
-        assert_eq!(session.transition(SessionEvent::LinkLost), Ok(SessionState::Reconnecting));
+        assert_eq!(
+            session.transition(SessionEvent::LinkLost),
+            Ok(SessionState::Reconnecting)
+        );
         assert_eq!(
             session.transition(SessionEvent::ReconnectSucceeded),
             Ok(SessionState::Streaming)
@@ -160,7 +168,9 @@ mod tests {
             SessionEvent::ChannelsReady,
             SessionEvent::LinkLost,
         ] {
-            session.transition(event).expect("transition to reconnecting");
+            session
+                .transition(event)
+                .expect("transition to reconnecting");
         }
 
         assert_eq!(
@@ -179,6 +189,9 @@ mod tests {
     #[test]
     fn error_event_moves_to_failed_from_any_state() {
         let mut session = Session::new();
-        assert_eq!(session.transition(SessionEvent::Error), Ok(SessionState::Failed));
+        assert_eq!(
+            session.transition(SessionEvent::Error),
+            Ok(SessionState::Failed)
+        );
     }
 }
