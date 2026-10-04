@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, ValueEnum};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
@@ -18,15 +20,22 @@ pub enum UsbBackend {
     Mock,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum TransportMode {
+    Wired,
+    Wireless,
+    Auto,
+}
+
 #[derive(Debug, Clone, Parser)]
 #[command(
     name = "linux-carplay",
     author,
     version,
-    about = "Linux CarPlay receiver MVP foundation with demo mode"
+    about = "Linux CarPlay receiver foundation with demo and integration scaffolding"
 )]
 pub struct Cli {
-    #[arg(long, help = "Run without real iPhone hardware")]
+    #[arg(long, help = "Run lifecycle without iPhone hardware")]
     pub demo: bool,
 
     #[arg(long, value_enum, default_value_t = RendererKind::Terminal)]
@@ -37,6 +46,22 @@ pub struct Cli {
 
     #[arg(long, value_enum, default_value_t = LogFormat::Text)]
     pub log_format: LogFormat,
+
+    #[arg(long, value_enum, default_value_t = TransportMode::Auto)]
+    pub transport: TransportMode,
+
+    #[arg(long, default_value_t = 3)]
+    pub max_reconnect_attempts: usize,
+
+    #[arg(long, help = "Optional shared token used by scaffold authenticator")]
+    pub auth_token: Option<String>,
+
+    #[arg(
+        long,
+        default_value = "./carplay_pairings.db",
+        help = "Pairing metadata store path for wireless mode"
+    )]
+    pub pairing_store: PathBuf,
 }
 
 impl Cli {
@@ -55,7 +80,7 @@ impl Cli {
 
 #[cfg(test)]
 mod tests {
-    use super::{Cli, LogFormat, RendererKind, UsbBackend};
+    use super::{Cli, LogFormat, RendererKind, TransportMode, UsbBackend};
 
     #[test]
     fn cli_parses_defaults() {
@@ -64,6 +89,10 @@ mod tests {
         assert_eq!(cli.renderer, RendererKind::Terminal);
         assert_eq!(cli.usb_backend, UsbBackend::Auto);
         assert_eq!(cli.log_format, LogFormat::Text);
+        assert_eq!(cli.transport, TransportMode::Auto);
+        assert_eq!(cli.max_reconnect_attempts, 3);
+        assert!(cli.auth_token.is_none());
+        assert!(cli.pairing_store.ends_with("carplay_pairings.db"));
     }
 
     #[test]
@@ -77,10 +106,27 @@ mod tests {
             "mock",
             "--log-format",
             "json",
+            "--transport",
+            "wireless",
+            "--max-reconnect-attempts",
+            "7",
+            "--auth-token",
+            "abc123",
+            "--pairing-store",
+            "/tmp/test-pairings.db",
         ]);
         assert!(cli.demo);
         assert_eq!(cli.renderer, RendererKind::Stub);
         assert_eq!(cli.usb_backend, UsbBackend::Mock);
         assert_eq!(cli.log_format, LogFormat::Json);
+        assert_eq!(cli.transport, TransportMode::Wireless);
+        assert_eq!(cli.max_reconnect_attempts, 7);
+        assert_eq!(cli.auth_token.as_deref(), Some("abc123"));
+        assert_eq!(
+            cli.pairing_store
+                .to_str()
+                .expect("pairing store path should be valid UTF-8"),
+            "/tmp/test-pairings.db"
+        );
     }
 }
